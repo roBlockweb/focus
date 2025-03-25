@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FocusFlow</title>
+    <link rel="stylesheet" href="css/popup.css">
+</head>
+<body>
+    <div class="app-container">
+        <header>
+            <h1>FocusFlow</h1>
+            <div id="user-profile">
+                <div id="profile-pic">
+                    <span>👤</span>
+                </div>
+                <div id="user-info">
+                    <span id="user-name">Guest</span>
+                    <span id="subscription-status" class="free-tier">Free Tier</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="focus-room">Focus Room</button>
+            <button class="tab-button" data-tab="pomodoro">Pomodoro</button>
+            <button class="tab-button" data-tab="goals">Goals</button>
+            <button class="tab-button" data-tab="analytics">Analytics</button>
+        </div>
+
+        <div class="tab-content">
+            <!-- Focus Room Tab -->
+            <div id="focus-room" class="tab-panel active">
+                <div class="room-selector">
+                    <h3>Join a Room</h3>
+                    <select id="room-dropdown">
+                        <option value="public-1">Public Room #1</option>
+                        <option value="public-2">Public Room #2</option>
+                        <option value="public-3">Public Room #3</option>
+                        <option value="premium-1" class="premium-option">Premium Room #1 ⭐</option>
+                        <option value="premium-2" class="premium-option">Premium Room #2 ⭐</option>
+                    </select>
+                    <button id="join-room-btn">Join Room</button>
+                    <p class="premium-note">⭐ Premium rooms offer enhanced features</p>
+                </div>
+                <div class="virtual-room">
+                    <h3>Current Room: <span id="current-room-name">Not Connected</span></h3>
+                    <div class="participants">
+                        <div class="participant">
+                            <div class="video-placeholder">👩</div>
+                            <span>Anna (Host)</span>
+                        </div>
+                        <div class="participant">
+                            <div class="video-placeholder">👨</div>
+                            <span>Mike</span>
+                        </div>
+                        <div class="participant you">
+                            <div class="video-placeholder">👤</div>
+                            <span>You</span>
+                        </div>
+                        <div class="participant">
+                            <div class="video-placeholder">👩</div>
+                            <span>Sarah</span>
+                        </div>
+                    </div>
+                    <div class="chat-area">
+                        <div id="chat-messages">
+                            <div class="message">
+                                <span class="sender">Anna:</span>
+                                <span class="content">Welcome to our focus session! Let's get productive.</span>
+                            </div>
+                            <div class="message">
+                                <span class="sender">Mike:</span>
+                                <span class="content">I'm working on a marketing project today.</span>
+                            </div>
+                            <div class="message ai-message">
+                                <span class="sender">FocusAI:</span>
+                                <span class="content">Tip: Remember to take breaks every 25 minutes!</span>
+                            </div>
+                        </div>
+                        <div class="message-input">
+                            <input type="text" id="message-text" placeholder="Type your message...">
+                            <button id="send-message">Send</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Pomodoro Tab -->
+            <div id="pomodoro" class="tab-panel">
+                <div class="pomodoro-container">
+                    <div class="timer">
+                        <div class="timer-display">
+                            <span id="minutes">25</span>:<span id="seconds">00</span>
+                        </div>
+                        <div class="timer-controls">
+                            <button id="start-timer">Start</button>
+                            <button id="pause-timer">Pause</button>
+                            <button id="reset-timer">Reset</button>
+                        </div>
+                    </div>
+                    <div class="pomodoro-settings">
+                        <h3>Timer Settings</h3>
+                        <div class="setting">
+                            <label for="focus-duration">Focus Time (minutes):</label>
+                            <input type="number" id="focus-duration" min="1" max="60" value="25">
+                        </div>
+                        <div class="setting">
+                            <label for="break-duration">Break Time (minutes):</label>
+                            <input type="number" id="break-duration" min="1" max="30" value="5">
+                        </div>
+                        <div class="setting">
+                            <label for="auto-start-breaks">Auto-start breaks:</label>
+                            <input type="checkbox" id="auto-start-breaks" checked>
+                        </div>
+                        <div class="setting">
+                            <label for="notification-sound">Notification sound:</label>
+                            <select id="notification-sound">
+                                <option value="bell">Bell</option>
+                                <option value="chime">Chime</option>
+                                <option value="none">None</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="ai-suggestions">
+                        <h3>AI Suggestions</h3>
+                        <div class="suggestion">
+                            <p>Based on your productivity patterns, we recommend <strong>30-minute focus sessions</strong> with 8-minute breaks. 🧠</p>
+                        </div>
+                        <p class="premium-note">⭐ Unlock personalized AI suggestions with Premium</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goals Tab -->
+            <div id="goals" class="tab-panel">
+                <div class="goals-container">
+                    <h3>Today's Goals</h3>
+                    <div class="goal-input">
+                        <input type="text" id="new-goal" placeholder="Add a new goal...">
+                        <button id="add-goal">Add</button>
+                    </div>
+                    <ul class="goal-list">
+                        <li class="goal-item">
+                            <input type="checkbox" id="goal-1">
+                            <label for="goal-1">Complete project proposal</label>
+                        </li>
+                        <li class="goal-item">
+                            <input type="checkbox" id="goal-2" checked>
+                            <label for="goal-2" class="completed">Review feedback from team</label>
+                        </li>
+                        <li class="goal-item">
+                            <input type="checkbox" id="goal-3">
+                            <label for="goal-3">Set up client meeting</label>
+                        </li>
+                    </ul>
+                    <div class="goal-stats">
+                        <div class="stat">
+                            <span class="stat-label">Today's Progress:</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 33%"></div>
+                            </div>
+                            <span class="stat-value">33%</span>
+                        </div>
+                        <div class="stat">
+                            <span class="stat-label">Weekly Average:</span>
+                            <div class="progress-bar">
+                                <div class="progress" style="width: 67%"></div>
+                            </div>
+                            <span class="stat-value">67%</span>
+                        </div>
+                    </div>
+                    <div class="accountability">
+                        <h3>Accountability Partner</h3>
+                        <div class="ai-accountability premium-feature">
+                            <p>FocusAI can help remind you of your goals and keep you on track.</p>
+                            <button id="enable-ai-accountability" class="premium-button">Enable AI Accountability ⭐</button>
+                        </div>
+                        <div class="human-accountability">
+                            <p>Share your goals with a friend</p>
+                            <div class="share-options">
+                                <input type="email" id="share-email" placeholder="Enter email address">
+                                <button id="share-goals">Share</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div id="analytics" class="tab-panel">
+                <div class="analytics-container">
+                    <h3>Your Productivity Insights</h3>
+                    <div class="chart-container">
+                        <div class="chart-placeholder">
+                            <p>Weekly Focus Time (Hours)</p>
+                            <div class="bar-chart">
+                                <div class="bar" style="height: 40%;" data-day="Mon">
+                                    <span class="bar-value">2.5</span>
+                                </div>
+                                <div class="bar" style="height: 70%;" data-day="Tue">
+                                    <span class="bar-value">4.2</span>
+                                </div>
+                                <div class="bar" style="height: 55%;" data-day="Wed">
+                                    <span class="bar-value">3.3</span>
+                                </div>
+                                <div class="bar" style="height: 85%;" data-day="Thu">
+                                    <span class="bar-value">5.1</span>
+                                </div>
+                                <div class="bar" style="height: 60%;" data-day="Fri">
+                                    <span class="bar-value">3.6</span>
+                                </div>
+                                <div class="bar" style="height: 25%;" data-day="Sat">
+                                    <span class="bar-value">1.5</span>
+                                </div>
+                                <div class="bar" style="height: 15%;" data-day="Sun">
+                                    <span class="bar-value">0.9</span>
+                                </div>
+                            </div>
+                            <div class="chart-legend">
+                                <span>Mon</span>
+                                <span>Tue</span>
+                                <span>Wed</span>
+                                <span>Thu</span>
+                                <span>Fri</span>
+                                <span>Sat</span>
+                                <span>Sun</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="analytics-insights">
+                        <h4>AI Insights</h4>
+                        <div class="insight">
+                            <p>Your most productive time of day is <strong>9 AM - 11 AM</strong></p>
+                        </div>
+                        <div class="insight">
+                            <p>You complete <strong>37% more tasks</strong> when using the Pomodoro technique</p>
+                        </div>
+                        <div class="insight premium-feature">
+                            <p>⭐ Unlock detailed productivity patterns and personalized recommendations with Premium</p>
+                        </div>
+                    </div>
+                    <div class="integrations">
+                        <h4>Connect Your Tools</h4>
+                        <div class="integration-options">
+                            <button class="integration-button" data-service="trello">
+                                <span class="service-icon">📋</span> Trello
+                            </button>
+                            <button class="integration-button" data-service="asana">
+                                <span class="service-icon">✅</span> Asana
+                            </button>
+                            <button class="integration-button" data-service="google-calendar">
+                                <span class="service-icon">📅</span> Google Calendar
+                            </button>
+                            <button class="integration-button premium-button" data-service="more">
+                                <span class="service-icon">⭐</span> More Integrations
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="premium-upgrade">
+            <button id="upgrade-button">Upgrade to Premium ⭐</button>
+            <p>Get private rooms, advanced analytics, unlimited integrations, and more for just $5/month.</p>
+        </div>
+
+        <footer>
+            <div class="app-settings">
+                <button id="settings-button">⚙️ Settings</button>
+                <button id="help-button">❓ Help</button>
+            </div>
+            <div class="app-version">
+                <span>FocusFlow v1.0.0</span>
+            </div>
+        </footer>
+    </div>
+
+    <div id="auth-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Sign In to FocusFlow</h2>
+            <div class="auth-options">
+                <div class="auth-form">
+                    <input type="email" id="auth-email" placeholder="Email">
+                    <input type="password" id="auth-password" placeholder="Password">
+                    <button id="sign-in-button">Sign In</button>
+                    <button id="register-button">Create Account</button>
+                </div>
+                <div class="auth-divider">
+                    <span>or</span>
+                </div>
+                <div class="social-auth">
+                    <button id="google-auth" class="social-button">
+                        <span>Sign in with Google</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="upgrade-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Upgrade to Premium</h2>
+            <div class="plan-options">
+                <div class="plan">
+                    <h3>Monthly Plan</h3>
+                    <div class="price">$5/month</div>
+                    <ul class="plan-features">
+                        <li>Private Rooms</li>
+                        <li>Advanced Analytics</li>
+                        <li>Unlimited Integrations</li>
+                        <li>Priority Matching</li>
+                        <li>Exclusive Content</li>
+                    </ul>
+                    <button class="select-plan" data-plan="monthly">Select</button>
+                </div>
+                <div class="plan best-value">
+                    <div class="best-value-tag">Best Value</div>
+                    <h3>Lifetime Access</h3>
+                    <div class="price">$50 one-time</div>
+                    <ul class="plan-features">
+                        <li>All Premium Features</li>
+                        <li>Never Pay Again</li>
+                        <li>Free Updates</li>
+                        <li>Priority Support</li>
+                        <li>Early Access to New Features</li>
+                    </ul>
+                    <button class="select-plan" data-plan="lifetime">Select</button>
+                </div>
+            </div>
+            <div class="payment-info">
+                <p>Secure payment processing. Cancel monthly plan anytime.</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/popup.js"></script>
+</body>
+</html>

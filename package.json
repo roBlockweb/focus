@@ -1,0 +1,24 @@
+{
+  "name": "focusflow",
+  "version": "1.0.0",
+  "description": "A Chrome extension that creates a virtual coworking environment to combat remote-work isolation and improve productivity",
+  "scripts": {
+    "test": "echo \"No tests yet\" && exit 0",
+    "lint": "eslint js/",
+    "build": "mkdir -p build && zip -r build/focusflow.zip manifest.json popup.html background.js css/ js/ images/ -x '*/\\.*'",
+    "dev": "echo \"Load unpacked extension in Chrome by going to chrome://extensions, enabling Developer mode, and clicking 'Load unpacked'\""
+  },
+  "keywords": [
+    "chrome-extension",
+    "productivity",
+    "pomodoro",
+    "coworking",
+    "focus"
+  ],
+  "author": "roBlockweb",
+  "license": "UNLICENSED",
+  "private": true,
+  "devDependencies": {
+    "eslint": "^8.57.1"
+  }
+}

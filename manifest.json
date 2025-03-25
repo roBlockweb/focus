@@ -1,0 +1,33 @@
+{
+  "name": "FocusFlow",
+  "version": "1.0.0",
+  "description": "Create a virtual coworking environment to combat remote-work isolation and improve productivity",
+  "manifest_version": 3,
+  "permissions": [
+    "storage",
+    "alarms",
+    "notifications",
+    "identity"
+  ],
+  "host_permissions": [
+    "https://api.trello.com/*",
+    "https://app.asana.com/api/*",
+    "https://www.googleapis.com/calendar/*"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "images/icon16.png",
+      "48": "images/icon48.png",
+      "128": "images/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "images/icon16.png",
+    "48": "images/icon48.png",
+    "128": "images/icon128.png"
+  }
+}
