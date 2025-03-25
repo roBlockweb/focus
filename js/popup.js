@@ -504,13 +504,14 @@ function toggleGoalCompletion(goalId) {
   }
 }
 
-// Delete a goal
-function deleteGoal(goalId) {
+// Delete a goal - implement in future version with delete button
+// Currently not used but keeping for future implementation
+/* function deleteGoal(goalId) {
   state.goals = state.goals.filter(g => g.id !== goalId);
   saveGoals();
   renderGoalsList();
   updateGoalStats();
-}
+} */
 
 // Render goals list UI
 function renderGoalsList() {
@@ -805,6 +806,7 @@ function showNotification(message) {
 }
 
 // Utility to get a random item from an array
-function getRandomItem(array) {
+// Currently not used but kept for future implementations
+/* function getRandomItem(array) {
   return array[Math.floor(Math.random() * array.length)];
-}
+} */

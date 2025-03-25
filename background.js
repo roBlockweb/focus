@@ -121,39 +121,43 @@ async function checkPremiumStatus() {
 
 // Optional: Implement WebSocket connection for real-time communication
 // This would be used for the virtual coworking rooms
-let socket = null;
+// Will be used in future implementation
+// let socket = null;
 
-// Connect to WebSocket server
+// NOTE: The following WebSocket functionality is commented out for now
+// These functions will be implemented in a future version when we add
+// real-time communication capabilities
+
+/* 
+// Connect to WebSocket server - To be implemented in future version
 function connectToServer() {
   // In a real implementation, we would connect to an actual WebSocket server
   console.log('Would connect to WebSocket server here');
     
   // Example implementation:
-  /*
-    socket = new WebSocket('wss://api.focusflow.example.com/ws');
+  socket = new WebSocket('wss://api.focusflow.example.com/ws');
     
-    socket.onopen = () => {
-        console.log('Connected to FocusFlow server');
-    };
+  socket.onopen = () => {
+      console.log('Connected to FocusFlow server');
+  };
     
-    socket.onmessage = (event) => {
-        const message = JSON.parse(event.data);
-        processServerMessage(message);
-    };
+  socket.onmessage = (event) => {
+      const message = JSON.parse(event.data);
+      processServerMessage(message);
+  };
     
-    socket.onclose = () => {
-        console.log('Disconnected from server');
-        // Attempt to reconnect after a delay
-        setTimeout(connectToServer, 5000);
-    };
+  socket.onclose = () => {
+      console.log('Disconnected from server');
+      // Attempt to reconnect after a delay
+      setTimeout(connectToServer, 5000);
+  };
     
-    socket.onerror = (error) => {
-        console.error('WebSocket error:', error);
-    };
-    */
+  socket.onerror = (error) => {
+      console.error('WebSocket error:', error);
+  };
 }
 
-// Process message from server
+// Process message from server - To be implemented in future version
 function processServerMessage(message) {
   // Handle different types of server messages
   console.log('Received server message:', message);
@@ -162,9 +166,10 @@ function processServerMessage(message) {
   chrome.runtime.sendMessage({ type: 'SERVER_MESSAGE', data: message });
 }
 
-// Send message to server
+// Send message to server - To be implemented in future version
 function sendToServer(messageData) {
   if (socket && socket.readyState === WebSocket.OPEN) {
     socket.send(JSON.stringify(messageData));
   }
 }
+*/
