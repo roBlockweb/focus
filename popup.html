@@ -3,16 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="FocusFlow - A virtual coworking environment to combat remote-work isolation and improve productivity">
+    <meta name="version" content="1.1.0">
+    <meta name="author" content="FocusFlow Team">
     <title>FocusFlow</title>
     <link rel="stylesheet" href="css/popup.css">
 </head>
 <body>
-    <div class="app-container">
+    <!-- Loading State -->
+    <div id="loading-screen" class="loading-container">
+        <div class="spinner"></div>
+        <p>Loading FocusFlow...</p>
+    </div>
+    
+    <!-- Error Message Banner -->
+    <div id="error-message" class="error-banner" style="display: none;"></div>
+    
+    <div class="app-container loading">
         <header>
             <h1>FocusFlow</h1>
-            <div id="user-profile">
+            <div id="user-profile" tabindex="0" aria-label="User profile menu">
                 <div id="profile-pic">
-                    <span>👤</span>
+                    <span aria-hidden="true">👤</span>
                 </div>
                 <div id="user-info">
                     <span id="user-name">Guest</span>
@@ -21,24 +33,24 @@
             </div>
         </header>
 
-        <div class="tabs">
-            <button class="tab-button active" data-tab="focus-room">Focus Room</button>
-            <button class="tab-button" data-tab="pomodoro">Pomodoro</button>
-            <button class="tab-button" data-tab="goals">Goals</button>
-            <button class="tab-button" data-tab="analytics">Analytics</button>
+        <div class="tabs" role="tablist">
+            <button class="tab-button active" data-tab="focus-room" role="tab" aria-selected="true" aria-controls="focus-room">Focus Room</button>
+            <button class="tab-button" data-tab="pomodoro" role="tab" aria-selected="false" aria-controls="pomodoro">Pomodoro</button>
+            <button class="tab-button" data-tab="goals" role="tab" aria-selected="false" aria-controls="goals">Goals</button>
+            <button class="tab-button" data-tab="analytics" role="tab" aria-selected="false" aria-controls="analytics">Analytics</button>
         </div>
 
         <div class="tab-content">
             <!-- Focus Room Tab -->
-            <div id="focus-room" class="tab-panel active">
+            <div id="focus-room" class="tab-panel active" role="tabpanel" aria-labelledby="focus-room-tab">
                 <div class="room-selector">
                     <h3>Join a Room</h3>
-                    <select id="room-dropdown">
+                    <select id="room-dropdown" aria-label="Select a coworking room">
                         <option value="public-1">Public Room #1</option>
                         <option value="public-2">Public Room #2</option>
                         <option value="public-3">Public Room #3</option>
-                        <option value="premium-1" class="premium-option">Premium Room #1 ⭐</option>
-                        <option value="premium-2" class="premium-option">Premium Room #2 ⭐</option>
+                        <option value="premium-1" class="premium-option" disabled>Premium Room #1 ⭐</option>
+                        <option value="premium-2" class="premium-option" disabled>Premium Room #2 ⭐</option>
                     </select>
                     <button id="join-room-btn">Join Room</button>
                     <p class="premium-note">⭐ Premium rooms offer enhanced features</p>
@@ -268,11 +280,11 @@
 
         <footer>
             <div class="app-settings">
-                <button id="settings-button">⚙️ Settings</button>
-                <button id="help-button">❓ Help</button>
+                <button id="settings-button" aria-label="Open settings">⚙️ Settings</button>
+                <button id="help-button" aria-label="Get help">❓ Help</button>
             </div>
             <div class="app-version">
-                <span>FocusFlow v1.0.0</span>
+                <span>FocusFlow v1.1.0</span>
             </div>
         </footer>
     </div>

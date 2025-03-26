@@ -2,6 +2,24 @@
 
 FocusFlow is a Chrome extension that creates a virtual coworking environment to combat remote-work isolation and improve productivity.
 
+![Version](https://img.shields.io/badge/version-1.1.0-blue)
+![Manifest](https://img.shields.io/badge/manifest-v3-brightgreen)
+![License](https://img.shields.io/badge/license-UNLICENSED-red)
+
+## Version 1.1.0 Updates
+
+- ✅ Modular, production-ready code structure
+- ✅ Improved error handling throughout the application
+- ✅ Enhanced accessibility for all UI elements
+- ✅ Dark mode support added
+- ✅ Better storage management with error recovery
+- ✅ More reliable notification system
+- ✅ Loading screens and error states
+- ✅ Unit test infrastructure added (Jest)
+- ✅ Strict Content Security Policy
+- ✅ Service worker improvements
+- ✅ Comprehensive documentation
+
 ## Features
 
 ### Free Tier
@@ -38,9 +56,42 @@ FocusFlow is a Chrome extension that creates a virtual coworking environment to 
 ### Building for Production
 To build the extension for production:
 
-1. Make sure all files are up to date
-2. Zip the entire directory
-3. The zip file can be uploaded to the Chrome Web Store
+1. Make sure all files are up to date and tests pass
+   ```bash
+   npm run validate
+   ```
+
+2. Build the production zip file
+   ```bash
+   npm run build
+   ```
+
+3. The zip file will be created in the `build/` directory with the version number
+   ```
+   build/focusflow-v1.1.0.zip
+   ```
+
+4. This file can be uploaded to the Chrome Web Store
+
+### Development Build
+
+For development testing, you can create a development build:
+
+```bash
+npm run build:dev
+```
+
+This will create `build/focusflow-dev.zip` which can be used for testing.
+
+### Version Management
+
+To bump the version number:
+
+1. Update the version in `package.json`
+2. Run the version script to update all files
+   ```bash
+   npm run version
+   ```
 
 ## Publishing to the Chrome Web Store
 

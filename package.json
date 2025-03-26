@@ -1,12 +1,16 @@
 {
   "name": "focusflow",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "A Chrome extension that creates a virtual coworking environment to combat remote-work isolation and improve productivity",
   "scripts": {
-    "test": "echo \"No tests yet\" && exit 0",
-    "lint": "eslint js/",
-    "build": "mkdir -p build && zip -r build/focusflow.zip manifest.json popup.html background.js css/ js/ images/ -x '*/\\.*'",
-    "dev": "echo \"Load unpacked extension in Chrome by going to chrome://extensions, enabling Developer mode, and clicking 'Load unpacked'\""
+    "test": "jest",
+    "lint": "eslint js/ background.js",
+    "lint:fix": "eslint js/ background.js --fix",
+    "build": "mkdir -p build && zip -r build/focusflow-v$npm_package_version.zip manifest.json popup.html background.js css/ js/ images/ lib/ README.md USER_GUIDE.md -x '*/\\.*'",
+    "build:dev": "mkdir -p build && zip -r build/focusflow-dev.zip manifest.json popup.html background.js css/ js/ images/ lib/ -x '*/\\.*'",
+    "dev": "echo \"Load unpacked extension in Chrome by going to chrome://extensions, enabling Developer mode, and clicking 'Load unpacked'\"",
+    "validate": "npm run lint && npm test",
+    "version": "node scripts/bump-version.js && git add manifest.json popup.html js/popup.js"
   },
   "keywords": [
     "chrome-extension",
@@ -19,6 +23,39 @@
   "license": "UNLICENSED",
   "private": true,
   "devDependencies": {
-    "eslint": "^8.57.1"
+    "eslint": "^8.57.1",
+    "jest": "^29.7.0",
+    "jest-chrome": "^0.8.0",
+    "jest-environment-jsdom": "^29.7.0"
+  },
+  "jest": {
+    "testEnvironment": "jsdom",
+    "setupFiles": [
+      "jest-chrome/setup.js"
+    ],
+    "moduleFileExtensions": [
+      "js",
+      "json"
+    ],
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ]
+  },
+  "eslintConfig": {
+    "env": {
+      "browser": true,
+      "es2021": true,
+      "webextensions": true,
+      "jest": true
+    },
+    "extends": "eslint:recommended",
+    "parserOptions": {
+      "ecmaVersion": "latest",
+      "sourceType": "module"
+    },
+    "rules": {
+      "no-console": "off",
+      "no-unused-vars": "warn"
+    }
   }
 }

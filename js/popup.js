@@ -1,12 +1,17 @@
 // FocusFlow Extension - Popup Script
+// Version 1.1.0 - Production Ready
 
-// State management
+/**
+ * State management for the popup UI
+ * This state is synchronized with chrome.storage.local
+ */
 const state = {
   user: {
     isLoggedIn: false,
     name: 'Guest',
     email: '',
-    isPremium: false
+    isPremium: false,
+    lastLoginDate: null
   },
   currentRoom: null,
   pomodoro: {
@@ -32,7 +37,18 @@ const state = {
   },
   integrations: {
     connected: []
-  }
+  },
+  appSettings: {
+    theme: 'light',
+    showNotifications: true,
+    version: '1.1.0'
+  },
+  // Current focus session information
+  currentSession: null,
+  // Flag to track initialization
+  initialized: false,
+  // Error state
+  error: null
 };
 
 // DOM Ready
@@ -65,29 +81,158 @@ function initializeUI() {
   renderAnalytics();
 }
 
-// Load user data from storage
-function loadUserData() {
-  chrome.storage.local.get(['userData', 'goals', 'pomodoro', 'analytics'], (result) => {
+/**
+ * Load user data from storage with error handling
+ * @returns {Promise<void>}
+ */
+async function loadUserData() {
+  try {
+    // Show loading indicator
+    setUIState('loading');
+    
+    // Load all required data at once
+    const result = await chrome.storage.local.get([
+      'userData', 
+      'goals', 
+      'pomodoro', 
+      'analytics', 
+      'integrations', 
+      'currentSession', 
+      'appSettings'
+    ]);
+    
+    // Update state with loaded data
     if (result.userData) {
       state.user = { ...state.user, ...result.userData };
-      updateUserProfile();
     }
-        
+    
     if (result.goals) {
       state.goals = result.goals;
-      renderGoalsList();
     }
-        
+    
     if (result.pomodoro) {
       state.pomodoro = { ...state.pomodoro, ...result.pomodoro };
-      updatePomodoroSettings();
     }
-        
+    
     if (result.analytics) {
       state.analytics = { ...state.analytics, ...result.analytics };
-      renderAnalytics();
+    }
+    
+    if (result.integrations) {
+      state.integrations = result.integrations;
+    }
+    
+    if (result.currentSession) {
+      state.currentSession = result.currentSession;
+    }
+    
+    if (result.appSettings) {
+      state.appSettings = { ...state.appSettings, ...result.appSettings };
+      
+      // Apply theme if specified
+      if (state.appSettings.theme) {
+        document.body.setAttribute('data-theme', state.appSettings.theme);
+      }
+    }
+    
+    // Check current service worker version
+    if (state.appSettings.version !== '1.1.0') {
+      console.log('Version mismatch, updating local data...');
+      
+      // Update version in storage to match current
+      await chrome.storage.local.set({
+        appSettings: { ...state.appSettings, version: '1.1.0' }
+      });
+    }
+    
+    // Mark as initialized
+    state.initialized = true;
+    
+    // Update UI with loaded data
+    updateUserProfile();
+    updatePomodoroSettings();
+    renderGoalsList();
+    renderAnalytics();
+    updateIntegrationsUI();
+    
+    // If there's an active pomodoro session, resume it
+    if (state.pomodoro.isRunning) {
+      startTimer(false); // Don't reset the timer
+    }
+    
+    // If there's an active focus session, update UI
+    if (state.currentSession && state.currentSession.isActive) {
+      updateSessionUI();
+    }
+    
+    // Show ready state
+    setUIState('ready');
+    
+  } catch (error) {
+    console.error('Error loading user data:', error);
+    state.error = 'Failed to load user data. Please try again.';
+    setUIState('error');
+  }
+}
+
+/**
+ * Set UI state (loading, ready, error)
+ * @param {string} uiState - The UI state to set
+ */
+function setUIState(uiState) {
+  const appContainer = document.querySelector('.app-container');
+  
+  // Remove existing state classes
+  appContainer.classList.remove('loading', 'ready', 'error');
+  
+  // Add new state class
+  appContainer.classList.add(uiState);
+  
+  // If there's an error, show it
+  if (uiState === 'error' && state.error) {
+    showNotification(state.error);
+    
+    // Create error message element if it doesn't exist
+    let errorElement = document.getElementById('error-message');
+    if (!errorElement) {
+      errorElement = document.createElement('div');
+      errorElement.id = 'error-message';
+      errorElement.classList.add('error-banner');
+      document.body.insertBefore(errorElement, appContainer);
+    }
+    
+    errorElement.textContent = state.error;
+    errorElement.style.display = 'block';
+  }
+}
+
+/**
+ * Update integrations UI
+ */
+function updateIntegrationsUI() {
+  if (!state.integrations.connected) return;
+  
+  // Update integration buttons to show connected state
+  state.integrations.connected.forEach(service => {
+    const button = document.querySelector(`.integration-button[data-service="${service}"]`);
+    if (button) {
+      button.classList.add('connected');
+      button.innerHTML = `<span class="service-icon">✓</span> ${button.textContent.trim().split(' ')[0]}`;
     }
   });
+}
+
+/**
+ * Update session UI when there's an active focus session
+ */
+function updateSessionUI() {
+  if (!state.currentSession || !state.currentSession.isActive) return;
+  
+  // Show active session indicator
+  const focusRoomTab = document.querySelector('.tab-button[data-tab="focus-room"]');
+  if (focusRoomTab) {
+    focusRoomTab.classList.add('active-session');
+  }
 }
 
 // Setup event listeners
@@ -342,81 +487,194 @@ function setupPomodoroEvents() {
   });
 }
 
-// Start the Pomodoro timer
-function startTimer() {
-  if (state.pomodoro.isRunning) return;
+/**
+ * Start the Pomodoro timer
+ * @param {boolean} resetDuration - Whether to reset the timer duration
+ * @returns {void}
+ */
+function startTimer(resetDuration = true) {
+  try {
+    if (state.pomodoro.isRunning) return;
     
-  state.pomodoro.isRunning = true;
-    
-  // Create an interval to update the timer every second
-  const timerInterval = setInterval(() => {
-    if (state.pomodoro.timeRemaining <= 0) {
-      // Timer finished
-      clearInterval(timerInterval);
-      handleTimerCompletion();
-      return;
+    // If requested, ensure timer is set to the proper duration
+    if (resetDuration) {
+      if (state.pomodoro.mode === 'focus') {
+        state.pomodoro.timeRemaining = state.pomodoro.focusDuration;
+      } else {
+        state.pomodoro.timeRemaining = state.pomodoro.breakDuration;
+      }
     }
-        
-    state.pomodoro.timeRemaining--;
-    updateTimerDisplay();
-  }, 1000);
     
-  // Store the interval ID as a property of the window object
-  window.timerInterval = timerInterval;
-}
-
-// Pause the Pomodoro timer
-function pauseTimer() {
-  if (!state.pomodoro.isRunning) return;
+    state.pomodoro.isRunning = true;
     
-  state.pomodoro.isRunning = false;
-  clearInterval(window.timerInterval);
-}
-
-// Reset the Pomodoro timer
-function resetTimer() {
-  pauseTimer();
+    // Update UI to reflect running state
+    document.getElementById('start-timer').setAttribute('disabled', 'disabled');
+    document.getElementById('pause-timer').removeAttribute('disabled');
     
-  if (state.pomodoro.mode === 'focus') {
-    state.pomodoro.timeRemaining = state.pomodoro.focusDuration;
-  } else {
-    state.pomodoro.timeRemaining = state.pomodoro.breakDuration;
+    // Tell background script we're starting a focus session (if in focus mode)
+    if (state.pomodoro.mode === 'focus') {
+      chrome.runtime.sendMessage({
+        type: 'START_FOCUS_SESSION',
+        duration: state.pomodoro.focusDuration / 60 // convert to minutes
+      }).catch(error => console.error('Error starting focus session:', error));
+    }
+    
+    // Create an interval to update the timer every second
+    const timerInterval = setInterval(() => {
+      if (state.pomodoro.timeRemaining <= 0) {
+        // Timer finished
+        clearInterval(timerInterval);
+        handleTimerCompletion();
+        return;
+      }
+      
+      state.pomodoro.timeRemaining--;
+      updateTimerDisplay();
+      
+      // Save to storage periodically (every 15 seconds)
+      if (state.pomodoro.timeRemaining % 15 === 0) {
+        savePomodoroSettings();
+      }
+    }, 1000);
+    
+    // Store the interval ID as a property of the window object
+    window.timerInterval = timerInterval;
+    
+    // Update storage
+    savePomodoroSettings();
+  } catch (error) {
+    console.error('Error starting timer:', error);
+    showNotification('Error starting timer. Please try again.');
   }
-    
-  updateTimerDisplay();
 }
 
-// Handle timer completion (focus or break)
-function handleTimerCompletion() {
-  // Play notification sound
-  playNotificationSound();
+/**
+ * Pause the Pomodoro timer
+ * @returns {void}
+ */
+function pauseTimer() {
+  try {
+    if (!state.pomodoro.isRunning) return;
     
-  // Show notification
-  if (state.pomodoro.mode === 'focus') {
-    showNotification('Focus session complete! Time for a break.');
-        
-    // Switch to break mode
-    state.pomodoro.mode = 'break';
-    state.pomodoro.timeRemaining = state.pomodoro.breakDuration;
-        
-    // Auto-start break if configured
-    if (state.pomodoro.autoStartBreaks) {
-      startTimer();
+    state.pomodoro.isRunning = false;
+    
+    // Update UI to reflect paused state
+    document.getElementById('start-timer').removeAttribute('disabled');
+    document.getElementById('pause-timer').setAttribute('disabled', 'disabled');
+    
+    // Clear the interval
+    if (window.timerInterval) {
+      clearInterval(window.timerInterval);
+      window.timerInterval = null;
     }
-  } else {
-    showNotification('Break complete! Ready for another focus session?');
-        
-    // Switch to focus mode
+    
+    // Update storage
+    savePomodoroSettings();
+  } catch (error) {
+    console.error('Error pausing timer:', error);
+    showNotification('Error pausing timer. Please try again.');
+  }
+}
+
+/**
+ * Reset the Pomodoro timer
+ * @returns {void}
+ */
+function resetTimer() {
+  try {
+    // Stop the timer if it's running
+    pauseTimer();
+    
+    // Reset to the appropriate duration
+    if (state.pomodoro.mode === 'focus') {
+      state.pomodoro.timeRemaining = state.pomodoro.focusDuration;
+    } else {
+      state.pomodoro.timeRemaining = state.pomodoro.breakDuration;
+    }
+    
+    // Update UI
+    updateTimerDisplay();
+    
+    // Update storage
+    savePomodoroSettings();
+  } catch (error) {
+    console.error('Error resetting timer:', error);
+    showNotification('Error resetting timer. Please try again.');
+  }
+}
+
+/**
+ * Handle timer completion (focus or break)
+ * @returns {Promise<void>}
+ */
+async function handleTimerCompletion() {
+  try {
+    // Play notification sound
+    playNotificationSound();
+    
+    // Record completion of current mode
+    const completedMode = state.pomodoro.mode;
+    
+    // Handle mode-specific actions
+    if (completedMode === 'focus') {
+      // Just finished a focus session
+      
+      // Show notification
+      showNotification('Focus session complete! Time for a break.');
+      
+      // Update analytics
+      const focusDurationMinutes = state.pomodoro.focusDuration / 60; // convert to minutes
+      updateFocusTimeAnalytics(focusDurationMinutes);
+      
+      // Tell background script that focus session ended
+      try {
+        await chrome.runtime.sendMessage({
+          type: 'END_FOCUS_SESSION',
+          sessionData: {
+            mode: 'focus',
+            actualDuration: state.pomodoro.focusDuration,
+            goalId: null // Would connect to specific goals in future implementation
+          }
+        });
+      } catch (error) {
+        console.error('Error ending focus session:', error);
+      }
+      
+      // Switch to break mode
+      state.pomodoro.mode = 'break';
+      state.pomodoro.timeRemaining = state.pomodoro.breakDuration;
+      
+      // Auto-start break if configured
+      if (state.pomodoro.autoStartBreaks) {
+        startTimer(false); // Don't reset duration, we just set it
+      }
+    } else {
+      // Just finished a break
+      
+      // Show notification
+      showNotification('Break complete! Ready for another focus session?');
+      
+      // Switch to focus mode
+      state.pomodoro.mode = 'focus';
+      state.pomodoro.timeRemaining = state.pomodoro.focusDuration;
+    }
+    
+    // Update UI
+    updateTimerDisplay();
+    
+    // Update storage
+    savePomodoroSettings();
+    
+  } catch (error) {
+    console.error('Error handling timer completion:', error);
+    showNotification('Error completing timer session. Your progress has been saved.');
+    
+    // Ensure we're in a reasonable state
+    state.pomodoro.isRunning = false;
     state.pomodoro.mode = 'focus';
     state.pomodoro.timeRemaining = state.pomodoro.focusDuration;
-  }
-    
-  updateTimerDisplay();
-    
-  // Update analytics data
-  if (state.pomodoro.mode === 'focus') {
-    // Just finished a focus session, update analytics
-    updateFocusTimeAnalytics(state.pomodoro.focusDuration / 60); // convert to minutes
+    updateTimerDisplay();
+    savePomodoroSettings();
   }
 }
 
@@ -769,39 +1027,72 @@ function openHelpPage() {
   showNotification('Help feature coming soon!');
 }
 
-// Show notification to user
-function showNotification(message) {
-  // Use Chrome notifications if available
-  if (chrome.notifications) {
-    chrome.notifications.create({
-      type: 'basic',
-      iconUrl: 'images/icon128.png',
-      title: 'FocusFlow',
-      message: message
-    });
-  } else {
-    // Fallback for development
+/**
+ * Show notification to user
+ * @param {string} message - Notification message
+ * @param {string} title - Optional notification title
+ * @returns {Promise<void>}
+ */
+async function showNotification(message, title = 'FocusFlow') {
+  try {
+    // Skip notifications if they're disabled in settings
+    if (state.appSettings && state.appSettings.showNotifications === false) {
+      console.log(`Notification suppressed: ${message}`);
+      return;
+    }
+    
+    // Use background service worker for notifications when possible
+    try {
+      await chrome.runtime.sendMessage({
+        type: 'SHOW_NOTIFICATION',
+        title: title,
+        message: message
+      });
+    } catch (error) {
+      // If background communication fails, fallback to in-app notification
+      console.warn('Failed to send notification via background service worker:', error);
+      
+      // Create in-app notification as fallback
+      showInAppNotification(message);
+    }
+  } catch (error) {
+    console.error('Error showing notification:', error);
+    // Fallback to console notification as a last resort
     console.log(`Notification: ${message}`);
-        
-    // Create in-app notification
+  }
+}
+
+/**
+ * Show an in-app notification
+ * @param {string} message - The notification message
+ */
+function showInAppNotification(message) {
+  try {
+    // Create notification element
     const notif = document.createElement('div');
     notif.classList.add('in-app-notification');
     notif.textContent = message;
-        
+    
+    // Add to DOM
     document.body.appendChild(notif);
-        
-    // Show animation
+    
+    // Show with animation
     setTimeout(() => {
       notif.classList.add('show');
     }, 10);
-        
-    // Remove after a delay
+    
+    // Remove after delay
     setTimeout(() => {
       notif.classList.remove('show');
       setTimeout(() => {
-        document.body.removeChild(notif);
+        // Only remove if still in DOM
+        if (notif.parentNode) {
+          document.body.removeChild(notif);
+        }
       }, 300);
     }, 3000);
+  } catch (error) {
+    console.error('Error showing in-app notification:', error);
   }
 }
 
